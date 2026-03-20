@@ -346,6 +346,1162 @@ body {
 .corp-btn.authorise { background: #b8922a; color: #070e1c; font-weight: 700; }
 .corp-btn.authorise:hover { background: #e8c76a; }
 
+
+/* BALANCE DISPLAY */
+.balance-strip {
+  background: var(--accent-light); border: 1px solid #c7d9fb;
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;
+  transition: all 0.5s ease;
+}
+.balance-strip.broke { background: #f9fafb; border-color: #d1d5db; }
+.balance-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); transition: color 0.5s; }
+.balance-strip.broke .balance-label { color: #9ca3af; }
+.balance-amount { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--text-primary); transition: color 0.5s; }
+.balance-strip.broke .balance-amount { color: #6b7280; }
+.balance-reset { font-size: 9px; color: var(--text-muted); letter-spacing: 0.06em; text-align: right; }
+
+/* BROKE MODE — applied to card body when balance is 0 */
+.card.broke-mode { border-color: #d1d5db; }
+.card.broke-mode .card-header { background: #f9fafb; }
+.card.broke-mode .card-title { color: #6b7280; }
+.card.broke-mode .card-subtitle { color: #9ca3af; }
+.card.broke-mode .tabs { background: #f3f4f6; }
+.card.broke-mode .tab-btn.active { background: #f9fafb; box-shadow: none; border: 1px solid #e5e7eb; }
+.card.broke-mode .tab-btn.active .tab-type { color: #9ca3af; }
+.card.broke-mode .sender-info { background: #f9fafb; border-color: #e5e7eb; }
+.card.broke-mode .sender-info-label { color: #9ca3af; }
+.card.broke-mode .sender-info-value { color: #6b7280; }
+.card.broke-mode .sender-info-divider { color: #d1d5db; }
+.card.broke-mode .btn-submit { background: #9ca3af; box-shadow: none; }
+.card.broke-mode .btn-submit:hover { background: #6b7280; }
+.card.broke-mode .form-input:focus { border-color: #9ca3af; box-shadow: 0 0 0 3px rgba(156,163,175,0.15); }
+
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-logo">
+    <div class="topbar-logo-dot"></div>
+    D&amp;C BANK &nbsp;<span>/ TRANSFER PORTAL</span>
+  </div>
+  <div class="topbar-user" id="topbar-user-section" style="display:none">
+    <div class="session-badge"><div class="session-dot"></div>Session Active</div>
+    <div class="topbar-avatar">SS</div>
+    <div class="topbar-user-info">
+      <div class="topbar-user-name">Stacklin, S.</div>
+      <div class="topbar-user-role">Accounts Payable &middot; D&amp;C Bank</div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      Sign Out
+    </button>
+  </div>
+</nav>
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="loader-card">
+    <div class="loader-logo"><div class="loader-logo-dot"></div>D&amp;C BANK</div>
+    <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar"></div></div>
+    <div class="loader-status" id="loader-status">Signing you in&hellip;</div>
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-card-top">
+      <div class="login-logo-mark">D&amp;C</div>
+      <div class="login-bank-name">Dunmore &amp; Clegg Bank</div>
+      <div class="login-bank-sub">SECURE TRANSFER PORTAL</div>
+    </div>
+    <div class="login-card-body">
+      <div class="login-user-row">
+        <div class="login-user-avatar">SS</div>
+        <div class="login-user-info">
+          <div class="login-user-name">Stacklin, S.</div>
+          <div class="login-user-sub">ACCOUNTS PAYABLE &middot; D&amp;C BANK</div>
+        </div>
+        <div class="login-lock-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+      </div>
+      <div id="login-error" class="login-error"></div>
+      <div id="login-lockout" class="login-lockout">
+        <div>Account temporarily locked after 3 failed attempts.</div>
+        <span class="lockout-timer" id="lockout-timer">15:00</span>
+        <div style="font-size:11px;color:#a16207">Access will be restored when the timer expires.</div>
+      </div>
+      <label class="login-form-label" for="password-input">Password</label>
+      <div class="attempt-dots">
+        <div class="attempt-dot" id="dot-0"></div>
+        <div class="attempt-dot" id="dot-1"></div>
+        <div class="attempt-dot" id="dot-2"></div>
+      </div>
+      <div class="login-input-wrap">
+        <input class="login-input" type="password" id="password-input" placeholder="Enter your password" autocomplete="current-password">
+        <button class="toggle-pw" type="button" onclick="togglePassword()">
+          <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+      </div>
+      <button class="btn-login" id="login-btn" onclick="attemptLogin()">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- PORTAL SCREEN -->
+<div id="portal-screen">
+  <main class="page-content">
+
+    <div class="page-breadcrumb" id="breadcrumb">
+      D&amp;C Portal <span>&rsaquo;</span> <span>Transfers</span> <span>&rsaquo;</span> <span class="current">New Transfer</span>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" id="card-title">New Fund Transfer</div>
+        <div class="card-subtitle" id="card-subtitle">Submit an internal transfer request via the D&amp;C Clearing System</div>
+      </div>
+      <div class="card-body">
+        <div class="balance-strip" id="balance-strip">
+          <div>
+            <div class="balance-label">Available Balance</div>
+            <div class="balance-amount" id="balance-display">$ 0.00</div>
+          </div>
+          <div class="balance-reset" id="balance-reset-info">Next deposit<br><span id="balance-next-deposit">--</span></div>
+        </div>
+        <div class="tabs-label">Send from</div>
+        <div class="tabs">
+          <button class="tab-btn active" id="tab0" onclick="setTab(0)">
+            <span class="tab-type">Personal</span>Stacklin, S.
+          </button>
+          <button class="tab-btn" id="tab1" onclick="setTab(1)">
+            <span class="tab-type">Work</span>D&amp;C Petty Cash
+          </button>
+        </div>
+        <div class="sender-info">
+          <div class="sender-info-item">
+            <span class="sender-info-label">From</span>
+            <span class="sender-info-value" id="sender-detail">Stacklin, S. &middot; Personal</span>
+          </div>
+          <div class="sender-info-divider">&rarr;</div>
+          <div class="sender-info-item" style="text-align:right">
+            <span class="sender-info-label">To</span>
+            <span class="sender-info-value">H&mdash;&mdash;&mdash; S. &middot; Special Projects</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="amount">Transfer Amount</label>
+          <div class="input-wrap">
+            <span class="input-prefix">$</span>
+            <input class="form-input has-prefix" type="number" id="amount" placeholder="0.00" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="note">Memo / Purpose Code</label>
+          <input class="form-input" type="text" id="note" placeholder="e.g. REIMB-MISC, PROJECT DELTA">
+        </div>
+        <button class="btn-submit" onclick="generate()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          <span id="submit-btn-text">Transfer</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RECEIPT SKELETON -->
+    <div id="receipt-skeleton" style="display:none; width:100%; max-width:520px; margin-top:20px;">
+      <div class="skeleton-card">
+        <div class="skeleton-accent"></div>
+        <div class="skeleton-header"><div class="skel skel-title"></div><div class="skel skel-sub"></div></div>
+        <div class="skeleton-row"><div class="skel skel-sm"></div><div class="skel skel-md"></div></div>
+        <div class="skeleton-row"><div class="skel skel-sm"></div><div class="skel skel-lg"></div></div>
+        <div class="skeleton-row"><div class="skel skel-sm"></div><div class="skel skel-md"></div></div>
+        <div class="skeleton-row"><div class="skel skel-sm"></div><div class="skel skel-lg"></div></div>
+        <div class="skeleton-row"><div class="skel skel-sm"></div><div class="skel skel-md"></div></div>
+        <div class="skeleton-row"><div class="skel skel-sm"></div><div class="skel skel-lg"></div></div>
+        <div class="skeleton-row"><div class="skel skel-sm"></div><div class="skel skel-amount"></div></div>
+      </div>
+    </div>
+
+    <!-- RECEIPT -->
+    <div id="receipt">
+      <div class="receipt-card" id="receipt-card">
+        <div class="receipt-accent"></div>
+        <div class="receipt-header">
+          <div>
+            <div class="receipt-company-name" id="r-header-name">Dunmore &amp; Clegg Bank</div>
+            <div class="receipt-company-address" id="r-header-sub">Electronic Funds Transfer &mdash; Confirmation<br>Internal Clearing System &middot; Floor 7</div>
+          </div>
+          <div class="receipt-status-badge">
+            <div class="receipt-status-dot" id="receipt-status-dot"></div>
+            <span id="receipt-status-text">Transfer Complete</span>
+          </div>
+        </div>
+        <div class="receipt-body">
+          <div class="receipt-row"><span class="r-label">Receipt No.</span><span class="r-value" id="r-id">&mdash;</span></div>
+          <div class="receipt-row"><span class="r-label">Date / Time</span><span class="r-value" id="r-date">&mdash;</span></div>
+          <div class="receipt-row" id="r-row-disbursement" style="display:none"><span class="r-label">Disbursed By</span><span class="r-value" id="r-disbursed-by">&mdash;</span></div>
+          <div class="receipt-row"><span class="r-label" id="r-from-label">From</span><span class="r-value" id="r-from">&mdash;</span></div>
+          <div class="receipt-row"><span class="r-label" id="r-acct-type-label">Account</span><span class="r-value" id="r-from-dept">&mdash;</span></div>
+          <div class="receipt-row"><span class="r-label">To</span><span class="r-value">H&mdash;&mdash;&mdash; S.</span></div>
+          <div class="receipt-row" id="r-row-dept" style="display:none"><span class="r-label" id="r-dept-label">Department</span><span class="r-value" id="r-dept-value">Special Projects</span></div>
+          <div class="receipt-row"><span class="r-label" id="r-memo-label">Memo</span><span class="r-value" id="r-note">&mdash;</span></div>
+          <div class="receipt-row"><span class="r-label">Acct. No.</span><span class="r-value" id="r-acct">&mdash;</span></div>
+          <div class="receipt-row"><span class="r-label">Routing No.</span><span class="r-value" id="r-routing">&mdash;</span></div>
+          <div class="receipt-row" id="r-row-approval" style="display:none"><span class="r-label">Approval Code</span><span class="r-value" id="r-approval">&mdash;</span></div>
+          <div class="receipt-row" id="r-row-cost-centre" style="display:none"><span class="r-label">Cost Centre</span><span class="r-value" id="r-cost-centre">&mdash;</span></div>
+        </div>
+        <div class="receipt-total">
+          <span class="receipt-total-label" id="r-total-label">Total Transferred</span>
+          <span class="receipt-total-amount" id="r-amount">$ 0.00</span>
+        </div>
+        <div class="receipt-footer" id="receipt-footer">
+          Authorised by: Dunmore &amp; Clegg Bank, Automated Clearing System<br>
+          This document serves as confirmation of the transaction. Retain for your records.<br>
+          This receipt is not valid for any purpose outside of this transaction.<br>
+          For inquiries, please contact us at: ext. 4471
+        </div>
+      </div>
+      <div class="fictional-notice" id="fictional-notice">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        Fictional document &mdash; for roleplay use only
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- CONSUMER WARNING MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-icon-row"><div class="modal-icon" id="modal-icon"><svg id="modal-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg></div></div>
+    <div class="modal-body"><div class="modal-title" id="modal-title"></div><div class="modal-msg" id="modal-msg"></div></div>
+    <div class="modal-divider"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- CORPORATE AUTH MODAL -->
+<div class="corp-modal-overlay" id="corp-modal-overlay">
+  <div class="corp-modal-box">
+    <div class="corp-modal-header">
+      <div class="corp-modal-crest"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+      <div class="corp-modal-header-text">
+        <div class="corp-modal-title">Authorisation Required</div>
+        <div class="corp-modal-subtitle">Dunmore &amp; Clegg &mdash; Corporate Disbursement</div>
+      </div>
+    </div>
+    <div class="corp-modal-body">
+      <div class="corp-modal-summary">
+        <div class="corp-summary-row"><span class="corp-summary-label">Disbursing Entity</span><span class="corp-summary-value">D&amp;C PETTY CASH &mdash; ACC-7700</span></div>
+        <div class="corp-summary-row"><span class="corp-summary-label">Recipient</span><span class="corp-summary-value">H&mdash;&mdash;&mdash; S. &mdash; SPECIAL PROJECTS</span></div>
+        <div class="corp-summary-row"><span class="corp-summary-label">Amount</span><span class="corp-summary-value gold" id="corp-summary-amount">$ &mdash;</span></div>
+      </div>
+      <label class="corp-auth-label" for="corp-auth-input">Employee Authorisation Code</label>
+      <div class="corp-auth-input-wrap">
+        <input class="corp-auth-input" type="password" id="corp-auth-input" placeholder="XXX-0000" autocomplete="off" spellcheck="false">
+        <button class="corp-toggle-pw" type="button" onclick="toggleCorpAuth()">
+          <svg id="corp-eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+      </div>
+      <div class="corp-auth-error" id="corp-auth-error">INVALID AUTHORISATION CODE &mdash; ACCESS DENIED</div>
+      <div class="corp-auth-hint">Enter your employee authorisation code to approve this disbursement. This action will be logged against your employee record.</div>
+    </div>
+    <div class="corp-modal-footer">
+      <button class="corp-btn cancel" onclick="closeCorpModal()">Abort</button>
+      <button class="corp-btn authorise" onclick="submitCorpAuth()">Authorise Disbursement</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+/* ── CONSTANTS ── */
+var CORRECT_PASSWORD = '$$$forDaddy';
+var CORP_AUTH_CODE = 'SLV-1512';
+var MAX_ATTEMPTS = 3;
+var LOCKOUT_MINUTES = 15;
+var PERSONAL_START_BALANCE = 100000;
+var PERSONAL_MONTHLY_SALARY = 25000;
+var CORP_SPEND_LIMIT = 1000000;
+var MS_30_DAYS = 30 * 24 * 60 * 60 * 1000;
+
+/* ── STATE ── */
+var currentTab = 0;
+var loginAttempts = 0;
+var lockedOut = false;
+var lockoutInterval = null;
+var corpAuthCallback = null;
+var freezeTimerInterval = null;
+
+/* ── LOCALSTORAGE HELPERS ── */
+function lsGet(key) { try { return JSON.parse(localStorage.getItem(key)); } catch(e) { return null; } }
+function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
+
+/* ── PERSONAL BALANCE ── */
+function initPersonalBalance() {
+  var data = lsGet('dcb_personal');
+  var now = Date.now();
+  if (!data) {
+    data = { balance: PERSONAL_START_BALANCE, lastDeposit: now };
+    lsSet('dcb_personal', data);
+  } else {
+    // Apply any missed monthly deposits
+    var elapsed = now - data.lastDeposit;
+    var months = Math.floor(elapsed / MS_30_DAYS);
+    if (months > 0) {
+      data.balance += months * PERSONAL_MONTHLY_SALARY;
+      data.lastDeposit += months * MS_30_DAYS;
+      lsSet('dcb_personal', data);
+    }
+  }
+  return data;
+}
+
+function getPersonalBalance() {
+  var data = lsGet('dcb_personal');
+  return data ? data.balance : PERSONAL_START_BALANCE;
+}
+
+function deductPersonalBalance(amount) {
+  var data = lsGet('dcb_personal');
+  if (!data) return;
+  data.balance = Math.max(0, data.balance - amount);
+  lsSet('dcb_personal', data);
+}
+
+function getNextDepositDate() {
+  var data = lsGet('dcb_personal');
+  if (!data) return null;
+  return new Date(data.lastDeposit + MS_30_DAYS);
+}
+
+function updateBalanceDisplay() {
+  var bal = getPersonalBalance();
+  var strip = document.getElementById('balance-strip');
+  var display = document.getElementById('balance-display');
+  var card = document.querySelector('.card');
+  var next = getNextDepositDate();
+  if (display) display.textContent = '$ ' + bal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (strip) strip.classList.toggle('broke', bal <= 0);
+  if (card) card.classList.toggle('broke-mode', bal <= 0);
+  if (next && document.getElementById('balance-next-deposit')) {
+    document.getElementById('balance-next-deposit').textContent = next.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+  }
+}
+
+/* ── CORPORATE FREEZE ── */
+function initCorpState() {
+  var data = lsGet('dcb_corp');
+  var now = Date.now();
+  if (!data) {
+    data = { spent: 0, periodStart: now, frozen: false, frozenUntil: null };
+    lsSet('dcb_corp', data);
+  }
+  // Reset period if 30 days passed (and not frozen)
+  if (!data.frozen && (now - data.periodStart) >= MS_30_DAYS) {
+    data.spent = 0;
+    data.periodStart = now;
+    lsSet('dcb_corp', data);
+  }
+  return data;
+}
+
+function isCorpFrozen() {
+  var data = lsGet('dcb_corp');
+  if (!data || !data.frozen) return false;
+  var now = Date.now();
+  if (now >= data.frozenUntil) {
+    // Freeze expired — reset
+    data.frozen = false;
+    data.frozenUntil = null;
+    data.spent = 0;
+    data.periodStart = now;
+    lsSet('dcb_corp', data);
+    return false;
+  }
+  return true;
+}
+
+function freezeCorpAccount() {
+  var data = lsGet('dcb_corp') || {};
+  var minMs = 24 * 60 * 60 * 1000;
+  var maxMs = 7 * 24 * 60 * 60 * 1000;
+  var duration = minMs + Math.random() * (maxMs - minMs);
+  data.frozen = true;
+  data.frozenUntil = Date.now() + duration;
+  lsSet('dcb_corp', data);
+}
+
+function recordCorpSpend(amount) {
+  var data = lsGet('dcb_corp') || { spent: 0, periodStart: Date.now() };
+  data.spent = (data.spent || 0) + amount;
+  lsSet('dcb_corp', data);
+}
+
+function getCorpFreezeRemaining() {
+  var data = lsGet('dcb_corp');
+  if (!data || !data.frozenUntil) return 0;
+  return Math.max(0, data.frozenUntil - Date.now());
+}
+
+function formatDuration(ms) {
+  var totalSec = Math.floor(ms / 1000);
+  var h = Math.floor(totalSec / 3600);
+  var m = Math.floor((totalSec % 3600) / 60);
+  var s = totalSec % 60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function showFreezeOverlay() {
+  var overlay = document.getElementById('freeze-overlay');
+  overlay.style.display = 'flex';
+  // Start countdown
+  if (freezeTimerInterval) clearInterval(freezeTimerInterval);
+  function tick() {
+    var rem = getCorpFreezeRemaining();
+    var timerEl = document.getElementById('freeze-timer');
+    if (rem <= 0) {
+      clearInterval(freezeTimerInterval);
+      if (timerEl) timerEl.textContent = 'RESTORED';
+      // Auto dismiss after a moment
+      setTimeout(function() {
+        overlay.style.display = 'none';
+        updateBalanceDisplay();
+      }, 1500);
+    } else {
+      if (timerEl) timerEl.textContent = formatDuration(rem);
+    }
+  }
+  tick();
+  freezeTimerInterval = setInterval(tick, 1000);
+}
+
+function hideFreezeOverlay() {
+  document.getElementById('freeze-overlay').style.display = 'none';
+  if (freezeTimerInterval) { clearInterval(freezeTimerInterval); freezeTimerInterval = null; }
+}
+
+function freezeGoToPersonal() {
+  hideFreezeOverlay();
+  setTab(0);
+}
+
+/* ── HELPERS ── */
+function randDigits(n) {
+  var s = '';
+  for (var i = 0; i < n; i++) s += Math.floor(Math.random() * 10);
+  return s;
+}
+
+/* ── LOADER ── */
+function showLoader(steps, onComplete) {
+  var screen = document.getElementById('loading-screen');
+  var bar = document.getElementById('loader-bar');
+  var status = document.getElementById('loader-status');
+  screen.classList.add('visible');
+  bar.style.width = '0%';
+  var i = 0;
+  function next() {
+    if (i >= steps.length) {
+      setTimeout(function() { screen.classList.remove('visible'); bar.style.width = '0%'; onComplete(); }, 150);
+      return;
+    }
+    var step = steps[i++];
+    status.textContent = step.text;
+    bar.style.width = step.pct + '%';
+    setTimeout(next, step.ms);
+  }
+  next();
+}
+
+/* ── LOGIN ── */
+function togglePassword() {
+  var input = document.getElementById('password-input');
+  var icon = document.getElementById('eye-icon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+  }
+}
+
+function startLockout() {
+  lockedOut = true;
+  document.getElementById('password-input').disabled = true;
+  document.getElementById('login-btn').disabled = true;
+  document.getElementById('login-error').classList.remove('visible');
+  document.getElementById('login-lockout').classList.add('visible');
+  var endTime = Date.now() + LOCKOUT_MINUTES * 60 * 1000;
+  lockoutInterval = setInterval(function() {
+    var rem = endTime - Date.now();
+    if (rem <= 0) { clearInterval(lockoutInterval); endLockout(); return; }
+    var m = Math.floor(rem / 60000), s = Math.floor((rem % 60000) / 1000);
+    document.getElementById('lockout-timer').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }, 500);
+}
+
+function endLockout() {
+  lockedOut = false;
+  document.getElementById('password-input').disabled = false;
+  document.getElementById('password-input').value = '';
+  document.getElementById('password-input').classList.remove('error');
+  document.getElementById('login-btn').disabled = false;
+  document.getElementById('login-lockout').classList.remove('visible');
+  for (var i = 0; i < 3; i++) document.getElementById('dot-' + i).classList.remove('used');
+  loginAttempts = 0;
+}
+
+function attemptLogin() {
+  if (lockedOut) return;
+  var val = document.getElementById('password-input').value;
+  var input = document.getElementById('password-input');
+  if (!val) {
+    document.getElementById('login-error').textContent = 'Please enter your password.';
+    document.getElementById('login-error').classList.add('visible');
+    input.classList.add('error');
+    return;
+  }
+  var afterLockout = (loginAttempts >= MAX_ATTEMPTS);
+  var correct = afterLockout ? true : (val === CORRECT_PASSWORD);
+  if (correct) {
+    document.getElementById('login-error').classList.remove('visible');
+    showLoader(
+      [
+        { text: 'Signing you in…', pct: 30, ms: 400 },
+        { text: 'Checking your details…', pct: 55, ms: 350 },
+        { text: 'Loading your accounts…', pct: 75, ms: 400 },
+        { text: 'Almost there…', pct: 90, ms: 300 },
+        { text: 'Welcome back!', pct: 100, ms: 250 }
+      ],
+      function() {
+        initPersonalBalance();
+        initCorpState();
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('portal-screen').classList.add('visible');
+        document.getElementById('topbar-user-section').style.display = 'flex';
+        updateBalanceDisplay();
+      }
+    );
+    return;
+  }
+  loginAttempts++;
+  document.getElementById('dot-' + (loginAttempts - 1)).classList.add('used');
+  input.classList.add('error');
+  if (loginAttempts >= MAX_ATTEMPTS) {
+    startLockout();
+  } else {
+    var rem = MAX_ATTEMPTS - loginAttempts;
+    document.getElementById('login-error').textContent = 'Incorrect password. ' + rem + ' attempt' + (rem === 1 ? '' : 's') + ' remaining before lockout.';
+    document.getElementById('login-error').classList.add('visible');
+    input.value = '';
+    setTimeout(function() { input.classList.remove('error'); }, 600);
+  }
+}
+
+document.getElementById('password-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') attemptLogin();
+});
+
+/* ── LOGOUT ── */
+function logout() {
+  hideFreezeOverlay();
+  showLoader(
+    [
+      { text: 'Signing you out…', pct: 40, ms: 300 },
+      { text: 'Securing your account…', pct: 75, ms: 350 },
+      { text: 'See you soon!', pct: 100, ms: 200 }
+    ],
+    function() {
+      document.getElementById('portal-screen').classList.remove('visible');
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('topbar-user-section').style.display = 'none';
+      document.getElementById('password-input').value = '';
+      document.getElementById('password-input').disabled = false;
+      document.getElementById('password-input').classList.remove('error');
+      document.getElementById('login-btn').disabled = false;
+      document.getElementById('login-error').classList.remove('visible');
+      document.getElementById('login-lockout').classList.remove('visible');
+      if (lockoutInterval) { clearInterval(lockoutInterval); lockoutInterval = null; }
+      loginAttempts = 0; lockedOut = false;
+      for (var i = 0; i < 3; i++) document.getElementById('dot-' + i).classList.remove('used');
+      document.getElementById('amount').value = '';
+      document.getElementById('note').value = '';
+      hideReceipt();
+      setTab(0);
+      document.body.style.background = '';
+    }
+  );
+}
+
+/* ── TABS ── */
+function setTab(index) {
+  currentTab = index;
+  document.getElementById('tab0').classList.toggle('active', index === 0);
+  document.getElementById('tab1').classList.toggle('active', index === 1);
+  var details = ['Stacklin, S. · Personal', 'D&C Petty Cash · Work'];
+  document.getElementById('sender-detail').textContent = details[index];
+  document.getElementById('submit-btn-text').textContent = index === 1 ? 'Submit Disbursement Request' : 'Transfer';
+  if (index === 1) {
+    document.getElementById('card-title').textContent = 'Corporate Disbursement';
+    document.getElementById('card-subtitle').textContent = 'Authorise a petty cash disbursement via the D&C Treasury System';
+  } else {
+    document.getElementById('card-title').textContent = 'New Fund Transfer';
+    document.getElementById('card-subtitle').textContent = 'Send money quickly and securely via D&C Bank';
+  }
+  var isCorp = index === 1;
+  document.body.style.background = isCorp ? '#0a101f' : '';
+  document.getElementById('breadcrumb').style.color = isCorp ? '#4a6480' : '';
+  document.getElementById('fictional-notice').style.color = isCorp ? '#2a3f55' : '';
+
+  // Show/hide balance strip (personal only)
+  document.getElementById('balance-strip').style.display = isCorp ? 'none' : 'flex';
+
+  // Check corp freeze when switching to work tab
+  if (isCorp && isCorpFrozen()) {
+    showFreezeOverlay();
+  }
+
+  hideReceipt();
+}
+
+function hideReceipt() {
+  document.getElementById('receipt').style.display = 'none';
+  document.getElementById('receipt-skeleton').style.display = 'none';
+}
+
+function showReceipt() {
+  var receipt = document.getElementById('receipt');
+  receipt.style.display = 'block';
+  receipt.classList.remove('visible');
+  void receipt.offsetWidth;
+  receipt.classList.add('visible');
+}
+
+/* ── CONSUMER WARNING MODALS ── */
+function showModal(type, title, msg, buttons) {
+  var icons = {
+    warn: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
+    danger: '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>'
+  };
+  document.getElementById('modal-icon').className = 'modal-icon ' + type;
+  document.getElementById('modal-icon-svg').innerHTML = icons[type] || icons.warn;
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-msg').textContent = msg;
+  var el = document.getElementById('modal-actions');
+  el.innerHTML = '';
+  buttons.forEach(function(btn) {
+    var b = document.createElement('button');
+    b.className = 'modal-btn ' + btn.style;
+    b.textContent = btn.label;
+    b.onclick = function() { document.getElementById('modal-overlay').classList.remove('visible'); btn.action(); };
+    el.appendChild(b);
+  });
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+function runQueue(queue, onComplete) {
+  if (!queue.length) { onComplete(); return; }
+  var item = queue.shift();
+  showModal(item.type, item.title, item.msg, [
+    { label: item.noLabel || 'Cancel', style: 'secondary', action: function() {} },
+    { label: item.yesLabel || 'Continue Anyway', style: item.yesStyle || 'primary', action: function() { runQueue(queue, onComplete); } }
+  ]);
+}
+
+/* ── CORPORATE AUTH MODAL ── */
+function toggleCorpAuth() {
+  var input = document.getElementById('corp-auth-input');
+  var icon = document.getElementById('corp-eye-icon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+  }
+}
+
+function showCorpAuthModal(amount, onAuthorised) {
+  corpAuthCallback = onAuthorised;
+  document.getElementById('corp-summary-amount').textContent = '$ ' + parseFloat(amount).toFixed(2);
+  document.getElementById('corp-auth-input').value = '';
+  document.getElementById('corp-auth-input').type = 'password';
+  document.getElementById('corp-auth-input').classList.remove('error');
+  document.getElementById('corp-auth-error').classList.remove('visible');
+  document.getElementById('corp-eye-icon').innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+  document.getElementById('corp-modal-overlay').classList.add('visible');
+  setTimeout(function() { document.getElementById('corp-auth-input').focus(); }, 100);
+}
+
+function closeCorpModal() {
+  document.getElementById('corp-modal-overlay').classList.remove('visible');
+  corpAuthCallback = null;
+}
+
+function submitCorpAuth() {
+  var val = document.getElementById('corp-auth-input').value.trim();
+  var input = document.getElementById('corp-auth-input');
+  if (val === CORP_AUTH_CODE) {
+    var cb = corpAuthCallback;
+    closeCorpModal();
+    if (cb) cb();
+  } else {
+    input.classList.add('error');
+    document.getElementById('corp-auth-error').classList.add('visible');
+    input.value = '';
+    setTimeout(function() { input.classList.remove('error'); }, 800);
+  }
+}
+
+document.getElementById('corp-auth-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') submitCorpAuth();
+});
+
+/* ── GENERATE ── */
+function generate() {
+  var amountRaw = parseFloat(document.getElementById('amount').value);
+  var note = document.getElementById('note').value.trim() || 'UNSPECIFIED';
+
+  if (isNaN(amountRaw) || amountRaw <= 0) {
+    alert('Please enter a valid transfer amount.');
+    return;
+  }
+
+  var isCorporate = currentTab === 1;
+
+  if (!isCorporate) {
+    var balance = getPersonalBalance();
+
+    // Hard block: exceeds balance
+    if (amountRaw > balance) {
+      showModal('danger', 'Insufficient Funds', 'Your current balance of $' + balance.toLocaleString('en-US', {minimumFractionDigits:2}) + ' is insufficient to cover this transfer of $' + amountRaw.toLocaleString() + '. The transaction cannot be processed.', [
+        { label: 'OK', style: 'danger-btn', action: function() {} }
+      ]);
+      return;
+    }
+
+    var queue = [];
+
+    if (amountRaw > 5000) {
+      queue.push({
+        type: 'warn', title: 'Transaction Limit Exceeded',
+        msg: 'This transfer of $' + amountRaw.toLocaleString() + ' exceeds your standard single-transaction limit of $5,000. Would you like to authorise this as a one-time exception?',
+        yesLabel: 'Authorise Exception', noLabel: 'Cancel', yesStyle: 'primary'
+      });
+    }
+
+    if (Math.random() < 0.15) {
+      queue.push({
+        type: 'warn', title: 'Bonus Interest Rate at Risk',
+        msg: 'After this transfer, your balance may fall below the $2,500 minimum required to maintain your 4.75% bonus interest rate. Do you still want to proceed?',
+        yesLabel: 'Yes, Proceed', noLabel: 'Cancel', yesStyle: 'primary'
+      });
+    }
+
+    if (Math.random() < 0.10) {
+      queue.push({
+        type: 'warn', title: 'Frequent Transfer Notice',
+        msg: "You have sent money to this account multiple times recently. D&C Bank advises caution — if you were prompted by someone else to make this transfer, it may be a scam. Are you sure you want to continue?",
+        yesLabel: "Yes, I'm Sure", noLabel: 'Cancel', yesStyle: 'danger-btn'
+      });
+    }
+
+    if (queue.length > 0) {
+      runQueue(queue, function() { buildReceipt(amountRaw, note); });
+      return;
+    }
+
+    buildReceipt(amountRaw, note);
+    return;
+  }
+
+  /* Corporate path */
+  var corpData = lsGet('dcb_corp') || { spent: 0 };
+  var projectedSpend = (corpData.spent || 0) + amountRaw;
+
+  if (projectedSpend > CORP_SPEND_LIMIT) {
+    // This transaction tips over — trigger freeze after auth
+    showCorpAuthModal(amountRaw, function() {
+      // Record the spend, freeze, then trigger the overlay + auto logout
+      recordCorpSpend(amountRaw);
+      freezeCorpAccount();
+      document.getElementById('corp-modal-overlay').classList.remove('visible');
+      showFreezeOverlay();
+      // Auto logout after 8 seconds
+      setTimeout(function() {
+        hideFreezeOverlay();
+        logout();
+      }, 8000);
+    });
+    return;
+  }
+
+  showCorpAuthModal(amountRaw, function() { buildReceipt(amountRaw, note); });
+}
+
+/* ── BUILD RECEIPT ── */
+function buildReceipt(amountRaw, note) {
+  var isCorporate = currentTab === 1;
+
+  // Deduct from personal balance if personal
+  if (!isCorporate) {
+    deductPersonalBalance(amountRaw);
+    updateBalanceDisplay();
+  } else {
+    recordCorpSpend(amountRaw);
+  }
+
+  var amount = amountRaw.toFixed(2);
+  var id = 'DC-' + String(Math.floor(Math.random() * 90000) + 10000) + '-F7';
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  var timeStr = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  var acctMasked = '•••• •••• ' + randDigits(12).slice(-4);
+  var routingMasked = '••••• ' + randDigits(9).slice(-4);
+  var approval = 'AUTH-' + randDigits(6) + ' · LEVEL 2 AUTHORISED';
+  var costCentre = 'CC-' + randDigits(4) + ' · OPERATIONAL EXPENDITURE';
+
+  hideReceipt();
+  document.getElementById('receipt-skeleton').style.display = 'block';
+
+  setTimeout(function() {
+    document.getElementById('receipt-skeleton').style.display = 'none';
+
+    var card = document.getElementById('receipt-card');
+
+    if (isCorporate) {
+      card.classList.add('corporate');
+      document.getElementById('r-header-name').textContent = 'DUNMORE & CLEGG ASSOCIATES';
+      document.getElementById('r-header-sub').innerHTML = 'Official Corporate Disbursement<br>Petty Cash — Authorised Expenditure';
+      document.getElementById('receipt-status-text').textContent = 'Disbursed';
+      document.getElementById('r-row-disbursement').style.display = 'flex';
+      document.getElementById('r-row-approval').style.display = 'flex';
+      document.getElementById('r-row-cost-centre').style.display = 'flex';
+      document.getElementById('r-row-dept').style.display = 'flex';
+      document.getElementById('r-from-label').textContent = 'Disbursing Entity';
+      document.getElementById('r-acct-type-label').textContent = 'Account Classification';
+      document.getElementById('r-dept-label').textContent = 'Cost Centre';
+      document.getElementById('r-dept-value').textContent = 'SPECIAL PROJECTS — SP-009';
+      document.getElementById('r-memo-label').textContent = 'Expenditure Reference';
+      document.getElementById('r-total-label').textContent = 'Total Disbursed';
+      document.getElementById('r-disbursed-by').textContent = 'DUNMORE & CLEGG — TREASURY DIVISION';
+      document.getElementById('r-approval').textContent = approval;
+      document.getElementById('r-cost-centre').textContent = costCentre;
+      document.getElementById('receipt-footer').innerHTML = 'Authorised under Dunmore &amp; Clegg Corporate Expenditure Policy &middot; Treasury Division<br>This disbursement has been approved in accordance with internal financial controls.<br>Retain this document for audit and compliance purposes.<br>Queries: Corporate Finance Desk &middot; Ext. 4471 &middot; finance@dunmoreclegg.internal';
+      document.getElementById('r-from').textContent = 'D&C PETTY CASH — ACC-7700';
+      document.getElementById('r-from-dept').textContent = 'Corporate Disbursement Account';
+    } else {
+      card.classList.remove('corporate');
+      document.getElementById('r-header-name').textContent = 'Dunmore & Clegg Bank';
+      document.getElementById('r-header-sub').innerHTML = 'Electronic Funds Transfer — Confirmation<br>Internal Clearing System · Floor 7';
+      document.getElementById('receipt-status-text').textContent = 'Transfer Complete';
+      document.getElementById('r-row-disbursement').style.display = 'none';
+      document.getElementById('r-row-approval').style.display = 'none';
+      document.getElementById('r-row-cost-centre').style.display = 'none';
+      document.getElementById('r-row-dept').style.display = 'none';
+      document.getElementById('r-from-label').textContent = 'From';
+      document.getElementById('r-acct-type-label').textContent = 'Account';
+      document.getElementById('r-memo-label').textContent = 'Memo';
+      document.getElementById('r-total-label').textContent = 'Total Transferred';
+      document.getElementById('receipt-footer').innerHTML = 'Authorised by: Dunmore &amp; Clegg Bank, Automated Clearing System<br>This document serves as confirmation of the transaction. Retain for your records.<br>This receipt is not valid for any purpose outside of this transaction.<br>For inquiries, please contact us at: ext. 4471';
+      document.getElementById('r-from').textContent = 'STACKLIN, S.';
+      document.getElementById('r-from-dept').textContent = 'Personal Account · D&C Bank';
+    }
+
+    document.getElementById('r-id').textContent = id;
+    document.getElementById('r-date').textContent = dateStr + ' · ' + timeStr;
+    document.getElementById('r-note').textContent = note.toUpperCase();
+    document.getElementById('r-acct').textContent = acctMasked;
+    document.getElementById('r-routing').textContent = routingMasked;
+    document.getElementById('r-amount').textContent = '$ ' + amount;
+
+    showReceipt();
+  }, 1200);
+}
+
+</script>
+
+<!-- CORPORATE FREEZE OVERLAY -->
+<div id="freeze-overlay" style="display:none; position:fixed; inset:0; z-index:400; background:#070e1c; flex-direction:column; align-items:center; justify-content:center; padding:32px;">
+  <div id="freeze-box" style="background:#0d1526; border:1px solid #1e2d4a; border-top:4px solid #dc2626; border-radius:12px; max-width:480px; width:100%; overflow:hidden; box-shadow:0 32px 80px rgba(0,0,0,0.7);">
+    <div style="padding:24px 28px 18px; border-bottom:1px solid #1e2d4a; display:flex; align-items:center; gap:14px;">
+      <div style="width:40px; height:40px; border-radius:50%; background:rgba(220,38,38,0.15); border:1px solid rgba(220,38,38,0.4); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#ef4444;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      </div>
+      <div>
+        <div style="font-size:11px; font-weight:700; color:#ef4444; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:2px;">Account Suspended &mdash; Ref. DCB-CPLC-009</div>
+        <div style="font-size:10px; color:#4a6480; font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase;">Dunmore &amp; Clegg &mdash; Office of Financial Compliance</div>
+      </div>
+    </div>
+    <div style="padding:22px 28px;">
+      <p style="font-size:13px; color:#c9d8e8; line-height:1.75; margin-bottom:16px;">
+        Unusual disbursement activity has been detected on the <strong style="color:#e8c76a;">D&amp;C Special Projects Petty Cash Account (ACC-7700)</strong>. Cumulative outflows have exceeded internal threshold limits within the current review period.
+      </p>
+      <p style="font-size:13px; color:#c9d8e8; line-height:1.75; margin-bottom:16px;">
+        This account has been <strong style="color:#ef4444;">immediately suspended</strong> pending review by the Office of Financial Compliance. All disbursement privileges have been revoked until further notice. An investigation has been opened under reference <strong style="color:#e2e8f0;">DCB-CPLC-009</strong>.
+      </p>
+      <p style="font-size:12px; color:#6b8aaa; line-height:1.7; margin-bottom:22px;">
+        You are required to cease all disbursement activity and cooperate fully with any compliance inquiry. Unauthorised attempts to circumvent this suspension may result in disciplinary action under the D&amp;C Employee Financial Conduct Policy.
+      </p>
+      <div style="background:#070e1c; border:1px solid #1e2d4a; border-radius:8px; padding:12px 16px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:10px; color:#4a6480; letter-spacing:0.1em; text-transform:uppercase;">Account access restored in</span>
+        <span id="freeze-timer" style="font-family:var(--mono); font-size:16px; font-weight:700; color:#e8c76a; letter-spacing:0.05em;">--:--:--</span>
+      </div>
+      <button onclick="freezeGoToPersonal()" style="width:100%; padding:11px; background:transparent; border:1px solid #1e2d4a; border-radius:8px; font-family:var(--font); font-size:13px; color:#6b8aaa; cursor:pointer; transition:all 0.15s;" onmouseover="this.style.background='#1e2d4a';this.style.color='#8faac8';" onmouseout="this.style.background='transparent';this.style.color='#6b8aaa';">
+        Return to Personal Account
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  min-width: 280px;
+}
+.loader-logo {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  color: var(--text-primary); letter-spacing: 0.04em;
+  display: flex; align-items: center; gap: 10px;
+}
+.loader-logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 2px; }
+.loader-bar-wrap { width: 100%; height: 3px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.loader-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), #60a5fa); border-radius: 3px; transition: width 0.05s linear; }
+.loader-status { font-size: 13px; color: var(--text-secondary); min-height: 18px; text-align: center; }
+
+/* LOGIN SCREEN */
+#login-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+.login-card-top { background: #0f1117; padding: 28px 32px 24px; text-align: center; }
+.login-logo-mark {
+  width: 44px; height: 44px; background: var(--accent);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px; font-family: var(--mono); font-size: 15px; font-weight: 700; color: #fff;
+}
+.login-bank-name { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.login-bank-sub { font-size: 11px; color: #6b7280; font-family: var(--mono); letter-spacing: 0.06em; }
+.login-card-body { padding: 28px 32px 32px; }
+.login-user-row {
+  background: var(--accent-light); border: 1px solid #c7d9fb;
+  border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 22px;
+  display: flex; align-items: center; gap: 12px;
+}
+.login-user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.login-user-info { display: flex; flex-direction: column; gap: 1px; }
+.login-user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.login-user-sub { font-size: 10px; color: var(--accent); font-family: var(--mono); letter-spacing: 0.05em; }
+.login-lock-icon { margin-left: auto; color: var(--accent); opacity: 0.5; flex-shrink: 0; }
+.login-form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+.login-input-wrap { position: relative; margin-bottom: 18px; }
+.login-input {
+  width: 100%; background: var(--surface);
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  padding: 10px 40px 10px 12px;
+  font-family: var(--font); font-size: 14px; color: var(--text-primary);
+  outline: none; letter-spacing: 0.1em;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.login-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+.login-input.error { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(220,38,38,0.1); }
+.login-input:disabled { background: #f9fafb; color: var(--text-muted); cursor: not-allowed; }
+.toggle-pw {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  padding: 0; display: flex; align-items: center;
+}
+.toggle-pw:hover { color: var(--text-secondary); }
+.login-error {
+  display: none; background: var(--danger-light); border: 1px solid #fecaca;
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  font-size: 12px; color: var(--danger); margin-bottom: 16px; line-height: 1.5;
+}
+.login-error.visible { display: block; }
+.login-lockout {
+  display: none; background: #fffbeb; border: 1px solid #fde68a;
+  border-radius: var(--radius-sm); padding: 14px;
+  font-size: 12px; color: #92400e; margin-bottom: 16px; text-align: center; line-height: 1.6;
+}
+.login-lockout.visible { display: block; }
+.lockout-timer { font-family: var(--mono); font-size: 22px; font-weight: 700; color: #b45309; display: block; margin: 6px 0 2px; }
+.attempt-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 18px; }
+.attempt-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--border); background: transparent; transition: all 0.2s; }
+.attempt-dot.used { background: var(--danger); border-color: var(--danger); }
+.btn-login {
+  width: 100%; padding: 11px 20px;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: var(--radius-sm); font-family: var(--font);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  box-shadow: 0 1px 3px rgba(26,86,219,0.3);
+}
+.btn-login:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(26,86,219,0.3); }
+.btn-login:active:not(:disabled) { transform: translateY(1px); }
+.btn-login:disabled { background: #93c5fd; cursor: not-allowed; box-shadow: none; }
+
+/* PORTAL SCREEN */
+#portal-screen { display: none; flex-direction: column; flex: 1; }
+#portal-screen.visible { display: flex; }
+
+/* PAGE CONTENT */
+.page-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 20px 60px; }
+.page-breadcrumb { width: 100%; max-width: 520px; font-size: 12px; color: var(--text-muted); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; transition: color 0.5s ease; }
+.page-breadcrumb span { color: var(--text-secondary); }
+.page-breadcrumb .current { color: var(--text-primary); font-weight: 500; }
+
+/* FORM CARD */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 520px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+.card-header { padding: 24px 28px 20px; border-bottom: 1px solid var(--border); }
+.card-title { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
+.card-subtitle { font-size: 13px; color: var(--text-secondary); }
+.card-body { padding: 24px 28px; }
+.tabs-label { font-size: 11px; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+.tabs { display: flex; gap: 6px; background: var(--bg); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 24px; }
+.tab-btn {
+  flex: 1; padding: 9px 14px; background: transparent; border: none;
+  border-radius: 6px; font-family: var(--font); font-size: 13px; font-weight: 500;
+  color: var(--text-secondary); cursor: pointer; text-align: left;
+  transition: all 0.15s ease; display: flex; flex-direction: column; gap: 1px;
+}
+.tab-btn .tab-type { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-weight: 400; }
+.tab-btn.active { background: var(--surface); color: var(--text-primary); box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04); }
+.tab-btn.active .tab-type { color: var(--accent); }
+.tab-btn:hover:not(.active) { background: rgba(255,255,255,0.6); color: var(--text-primary); }
+.sender-info { background: var(--accent-light); border: 1px solid #c7d9fb; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sender-info-item { display: flex; flex-direction: column; gap: 2px; }
+.sender-info-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+.sender-info-value { font-size: 12px; font-weight: 500; color: var(--text-primary); font-family: var(--mono); }
+.sender-info-divider { color: var(--accent); font-size: 16px; opacity: 0.4; flex-shrink: 0; }
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+.input-wrap { position: relative; }
+.input-prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 14px; color: var(--text-muted); pointer-events: none; font-weight: 500; }
+.form-input { width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-family: var(--font); font-size: 14px; color: var(--text-primary); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.form-input.has-prefix { padding-left: 28px; }
+.form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+.form-input::placeholder { color: var(--text-muted); }
+.btn-submit { width: 100%; padding: 11px 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s, box-shadow 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; box-shadow: 0 1px 3px rgba(26,86,219,0.3); }
+.btn-submit:hover { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(26,86,219,0.3); }
+.btn-submit:active { transform: translateY(1px); }
+
+/* RECEIPT SKELETON */
+.skeleton-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 0 0 20px; }
+.skeleton-accent { height: 4px; background: #e2e4e9; margin-bottom: 20px; }
+.skeleton-header { padding: 0 24px 16px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.skeleton-row { display: flex; justify-content: space-between; padding: 11px 24px; border-bottom: 1px solid var(--border); gap: 16px; }
+.skeleton-row:last-child { border-bottom: none; }
+.skel { background: linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 4px; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.skel-sm { height: 10px; width: 60px; }
+.skel-md { height: 10px; width: 110px; }
+.skel-lg { height: 10px; width: 160px; }
+.skel-title { height: 14px; width: 140px; margin-bottom: 6px; }
+.skel-sub { height: 9px; width: 190px; }
+.skel-amount { height: 20px; width: 90px; }
+
+/* RECEIPT */
+#receipt { display: none; width: 100%; max-width: 520px; margin-top: 20px; }
+#receipt.visible { display: block; animation: fade-up 0.3s ease; }
+@keyframes fade-up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.receipt-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.receipt-accent { height: 4px; background: linear-gradient(90deg,var(--accent) 0%,#60a5fa 100%); }
+.receipt-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; }
+.receipt-company-name { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; word-break: break-word; }
+.receipt-company-address { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+.receipt-status-badge { display: flex; align-items: center; gap: 5px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 4px 10px; font-size: 10px; font-weight: 600; color: var(--success); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.receipt-status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+.receipt-body { padding: 0 24px; }
+.receipt-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--border); gap: 16px; min-width: 0; }
+.receipt-row:last-child { border-bottom: none; }
+.r-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; min-width: 90px; }
+.r-value { font-family: var(--mono); font-size: 12px; color: var(--text-primary); text-align: right; word-break: break-word; overflow-wrap: anywhere; min-width: 0; flex: 1; }
+.receipt-total { padding: 16px 24px; background: var(--accent-light); border-top: 1px solid #c7d9fb; display: flex; justify-content: space-between; align-items: center; }
+.receipt-total-label { font-size: 13px; font-weight: 600; color: var(--accent); }
+.receipt-total-amount { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.02em; word-break: break-word; max-width: 60%; text-align: right; }
+.receipt-footer { padding: 14px 24px; border-top: 1px solid var(--border); font-size: 10px; color: var(--text-muted); line-height: 1.7; text-align: center; word-break: break-word; overflow-wrap: anywhere; }
+.fictional-notice { margin-top: 12px; text-align: center; font-size: 10px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 5px; transition: color 0.5s ease; }
+
+/* CORPORATE RECEIPT OVERRIDES */
+.receipt-card.corporate { background: #0d1526; border-color: #1e2d4a; }
+.receipt-card.corporate .receipt-accent { background: linear-gradient(90deg,#b8922a 0%,#e8c76a 50%,#b8922a 100%); }
+.receipt-card.corporate .receipt-header { border-bottom-color: #1e2d4a; }
+.receipt-card.corporate .receipt-company-name { color: #e8c76a; letter-spacing: 0.06em; }
+.receipt-card.corporate .receipt-company-address { color: #8faac8; }
+.receipt-card.corporate .receipt-status-badge { background: rgba(184,146,42,0.15); border-color: rgba(184,146,42,0.4); color: #e8c76a; }
+.receipt-card.corporate .receipt-status-dot { background: #e8c76a; animation: none; }
+.receipt-card.corporate .receipt-row { border-bottom-color: #1e2d4a; }
+.receipt-card.corporate .r-label { color: #6b8aaa; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.receipt-card.corporate .r-value { color: #e2e8f0; font-size: 13px; }
+.receipt-card.corporate .receipt-total { background: #070e1c; border-top-color: #b8922a; }
+.receipt-card.corporate .receipt-total-label { color: #e8c76a; letter-spacing: 0.08em; text-transform: uppercase; }
+.receipt-card.corporate .receipt-total-amount { color: #fff; font-size: 26px; }
+.receipt-card.corporate .receipt-footer { color: #4a6480; border-top-color: #1e2d4a; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* CONSUMER WARNING MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
+.modal-overlay.visible { display: flex; animation: fade-up 0.2s ease; }
+.modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
+.modal-icon-row { padding: 24px 24px 0; display: flex; justify-content: center; }
+.modal-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.modal-icon.warn { background: #fef3c7; color: #d97706; }
+.modal-icon.danger { background: #fee2e2; color: #dc2626; }
+.modal-body { padding: 16px 24px 20px; text-align: center; }
+.modal-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.modal-msg { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.modal-actions { padding: 0 24px 24px; display: flex; gap: 10px; }
+.modal-btn { flex: 1; padding: 10px; border-radius: var(--radius-sm); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+.modal-btn.secondary { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+.modal-btn.secondary:hover { background: #e5e7eb; color: var(--text-primary); }
+.modal-btn.primary { background: var(--accent); color: #fff; }
+.modal-btn.primary:hover { background: var(--accent-hover); }
+.modal-btn.danger-btn { background: var(--danger); color: #fff; }
+.modal-btn.danger-btn:hover { background: #b91c1c; }
+.modal-divider { height: 1px; background: var(--border); margin: 0 24px; }
+
+/* CORPORATE AUTH MODAL */
+.corp-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,10,20,0.75); z-index: 300; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px); }
+.corp-modal-overlay.visible { display: flex; animation: fade-up 0.2s ease; }
+.corp-modal-box { background: #0d1526; border: 1px solid #1e2d4a; border-top: 3px solid #b8922a; border-radius: var(--radius); width: 100%; max-width: 420px; box-shadow: 0 24px 80px rgba(0,0,0,0.5); overflow: hidden; }
+.corp-modal-header { padding: 20px 24px 16px; border-bottom: 1px solid #1e2d4a; display: flex; align-items: center; gap: 14px; }
+.corp-modal-crest { width: 36px; height: 36px; border-radius: 6px; background: rgba(184,146,42,0.15); border: 1px solid rgba(184,146,42,0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #e8c76a; }
+.corp-modal-header-text { display: flex; flex-direction: column; gap: 2px; }
+.corp-modal-title { font-size: 13px; font-weight: 700; color: #e2e8f0; letter-spacing: 0.04em; text-transform: uppercase; }
+.corp-modal-subtitle { font-size: 10px; color: #4a6480; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.corp-modal-body { padding: 20px 24px; }
+.corp-modal-summary { background: #070e1c; border: 1px solid #1e2d4a; border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 20px; }
+.corp-summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; gap: 12px; }
+.corp-summary-label { font-size: 10px; color: #4a6480; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
+.corp-summary-value { font-family: var(--mono); font-size: 11px; color: #8faac8; text-align: right; }
+.corp-summary-value.gold { color: #e8c76a; font-size: 14px; font-weight: 500; }
+.corp-auth-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #6b8aaa; margin-bottom: 6px; display: block; }
+.corp-auth-input-wrap { position: relative; margin-bottom: 8px; }
+.corp-auth-input { width: 100%; background: #070e1c; border: 1.5px solid #1e2d4a; border-radius: var(--radius-sm); padding: 10px 40px 10px 12px; font-family: var(--mono); font-size: 15px; color: #e2e8f0; outline: none; letter-spacing: 0.15em; transition: border-color 0.15s, box-shadow 0.15s; }
+.corp-auth-input:focus { border-color: #b8922a; box-shadow: 0 0 0 3px rgba(184,146,42,0.12); }
+.corp-auth-input.error { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.12); }
+.corp-auth-input::placeholder { color: #2a3f55; letter-spacing: 0.1em; }
+.corp-toggle-pw { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #2a3f55; padding: 0; display: flex; align-items: center; }
+.corp-toggle-pw:hover { color: #4a6480; }
+.corp-auth-error { display: none; font-size: 11px; color: #ef4444; font-family: var(--mono); letter-spacing: 0.06em; margin-bottom: 16px; }
+.corp-auth-error.visible { display: block; }
+.corp-auth-hint { font-size: 10px; color: #2a3f55; letter-spacing: 0.06em; margin-bottom: 20px; line-height: 1.5; }
+.corp-modal-footer { padding: 0 24px 24px; display: flex; gap: 10px; }
+.corp-btn { flex: 1; padding: 10px; border-radius: var(--radius-sm); font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border: none; transition: all 0.15s; }
+.corp-btn.cancel { background: transparent; color: #4a6480; border: 1px solid #1e2d4a; flex: 0 0 auto; padding: 10px 18px; }
+.corp-btn.cancel:hover { background: #1e2d4a; color: #8faac8; }
+.corp-btn.authorise { background: #b8922a; color: #070e1c; font-weight: 700; }
+.corp-btn.authorise:hover { background: #e8c76a; }
+
 </style>
 </head>
 <body>
