@@ -557,7 +557,7 @@ body {
         <div class="receipt-header">
           <div>
             <div class="receipt-company-name" id="r-header-name">Dunmore &amp; Clegg Bank</div>
-            <div class="receipt-company-address" id="r-header-sub">Electronic Funds Transfer &mdash; Confirmation<br>Internal Clearing System &middot; Floor 7</div>
+            <div class="receipt-company-address" id="r-header-sub">Electronic Funds Transfer &mdash; Confirmation</div>
           </div>
           <div class="receipt-status-badge">
             <div class="receipt-status-dot" id="receipt-status-dot"></div>
@@ -1123,7 +1123,7 @@ function generate() {
     if (Math.random() < 0.15) {
       queue.push({
         type: 'warn', title: 'Bonus Interest Rate at Risk',
-        msg: 'After this transfer, your balance may fall below the $2,500 minimum required to maintain your 4.75% bonus interest rate. Do you still want to proceed?',
+        msg: 'After this transfer, your balance may fall below the minimum required to maintain your 4.75% bonus interest rate. Do you still want to proceed?',
         yesLabel: 'Yes, Proceed', noLabel: 'Cancel', yesStyle: 'primary'
       });
     }
